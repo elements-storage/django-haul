@@ -1,0 +1,4 @@
+
+
+class ModelClassNotRegistered(Exception):
+    pass
