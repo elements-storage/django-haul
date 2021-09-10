@@ -105,6 +105,7 @@ ENV/
 .vscode/
 
 pyproject.toml
+poetry.lock
 *.sqlite
 export.yml
 .DS_Store
