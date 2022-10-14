@@ -18,7 +18,6 @@ from ._yaml import get_yaml
 
 
 logger = logging.getLogger('haul.import')
-logger.setLevel(logging.DEBUG)
 
 
 class ImportReport:

@@ -15,7 +15,6 @@ from ._yaml import get_yaml
 
 
 logger = logging.getLogger('haul.export')
-logger.setLevel(logging.DEBUG)
 
 
 class ExportContainer(BaseContainer):
