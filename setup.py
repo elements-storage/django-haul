@@ -33,6 +33,7 @@ setup(
     install_requires=requirements,
     license="MIT",
     long_description=readme,
+    long_description_content_type='text/markdown',
     include_package_data=True,
     keywords=['django', 'orm', 'export', 'import'],
     name='django-haul',
@@ -40,6 +41,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/elements-storage/haul',
-    version='0.0.9',
+    version='0.0.11',
     zip_safe=False,
 )
