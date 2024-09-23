@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """The setup script."""
 
@@ -41,6 +41,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/elements-storage/haul',
-    version='0.0.11',
+    version='0.0.12',
     zip_safe=False,
 )

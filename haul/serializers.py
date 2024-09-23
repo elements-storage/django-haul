@@ -88,7 +88,7 @@ class ReverseForeignKey(_BaseM2X):
     weak = True
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, allow_null=True)
+        super().__init__(*args, allow_null=True, **kwargs)
 
 
 class Exporter(serializers.ModelSerializer):
