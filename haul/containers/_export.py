@@ -3,6 +3,7 @@ import shutil
 import zipfile
 from django.db.models import Model
 from io import TextIOWrapper
+from contextlib import nullcontext, closing
 from typing import Any, Dict, IO, Iterable, List, Optional, Set, Type
 
 from ..policy import ExportPolicy
@@ -122,14 +123,18 @@ class ExportContainer(BaseContainer):
         :param stream: The stream to write into. For ``ContainerFormat.ZIP_*``, has to be seekable.
         :param metadata: a free-form metadata object that will be stored in the stream. It's available later through :attr:`ImportContainer.metadata`.
         '''
+        for item in self._write(stream, format, metadata):
+            if isinstance(item, Exception):
+                raise item
+
+    def _write(self, stream: IO[bytes], format: ContainerFormat = ContainerFormat.YAML, metadata: Any = None):
         stream = UncloseableStream(stream)
-        yaml = get_yaml()
         if format == ContainerFormat.YAML:
             for obj in self._objects.values():
                 if len(obj.attachments):
                     raise ValueError('File attachments require a ZIP based container format')
 
-            archive = None
+            archive = nullcontext()
             metadata_stream = TextIOWrapper(stream)  # type: ignore
         else:
             archive = zipfile.ZipFile(
@@ -139,8 +144,9 @@ class ExportContainer(BaseContainer):
             )
             metadata_stream = TextIOWrapper(archive.open('metadata.yaml', 'w'))
 
-        try:
-            try:
+        with archive:
+            with metadata_stream:
+                yaml = get_yaml()
                 header = {
                     '_': 'header',
                     'version': 1,
@@ -156,10 +162,13 @@ class ExportContainer(BaseContainer):
                         'data': obj.serialized_data,
                         'attachments': obj.attachments,
                     }
+                    data = (yield (data, obj)) or data
+
                     metadata_stream.write('\n---\n')
-                    yaml.dump(data, metadata_stream)
-            finally:
-                metadata_stream.close()
+                    try:
+                        yaml.dump(data, metadata_stream)
+                    except Exception as exc:
+                        yield exc
 
             for obj in self._objects.values():
                 for attachment in obj.attachments:
@@ -168,11 +177,5 @@ class ExportContainer(BaseContainer):
                     with archive.open(f'attachments/{attachment.id}', 'w') as output:
                         assert attachment.content_provider is not None
                         attachment_stream = attachment.content_provider()
-                        try:
+                        with closing(attachment_stream):
                             shutil.copyfileobj(attachment_stream, output)  # type: ignore
-                        finally:
-                            attachment_stream.close()
-
-        finally:
-            if archive:
-                archive.close()
