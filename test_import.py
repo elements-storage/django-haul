@@ -1,7 +1,7 @@
 from haul.policy import ImportPolicy, RelinkAction
-from haul.container import ImportContainer
+from haul.containers import ImportContainer
 from test_app.models import Book, Author
-from test_app.export import BookExporter, AuthorExporter
+from test_app.export import BookExporter, AuthorExporter, TagExporter
 
 class IP(ImportPolicy):
     def relink_object(self, model_cls, obj):
@@ -19,12 +19,13 @@ a1 = Author.objects.create(name='1')
 a3 = Author.objects.create(name='3')
 
 c = ImportContainer(policy=IP())
-c.register_exporter(Book, BookExporter)
-c.register_exporter(Author, AuthorExporter)
+c.register_exporter(BookExporter)
+c.register_exporter(AuthorExporter)
+c.register_exporter(TagExporter)
 
 with open('export/export.zip', 'rb') as f:
-    c.read(f)
-    c.import_objects()
+    with c.read(f):
+        c.import_objects()
 
 print(Author.objects.all())
 print(Book.objects.all())
